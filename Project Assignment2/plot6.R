@@ -1,14 +1,17 @@
 library(dplyr)
 library(ggplot2)
 
-#Download and extract the zip file:
+#Download, extract the files and then remove the zipfile:
 if(!file.exists("Source_Classification_Code.rds") & !file.exists("summarySCC_PM25.rds")) {
   if(!file.exists("exdata-data-NEI_data.zip")) {
-    download.file("https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2FNEI_data.zip", 
-                  destfile = "exdata-data-NEI_data.zip", method = "curl")
-    unzip("exdata-data-NEI_data.zip")
+    temp <- tempfile()
+    fileUrl <- "https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2FNEI_data.zip"
+    download.file(fileUrl, temp) #method = "curl"
+    unzip(temp)
+    unlink(temp)
   } else {
-    unzip("exdata-data-NEI_data.zip")
+    unzip(temp)
+    unlink(temp)
   }
   
 }
@@ -28,26 +31,17 @@ NEI.motor.city <- subset(NEI.motor, fips == "24510" | fips == "06037")
 NEI.motor.city <- NEI.motor.city %>%
   group_by(fips, year) %>%
   summarise(emissions = sum(Emissions)) %>%
-  mutate(change = emissions/emissions[year == 1999], 
-         county = ifelse(fips == "06037", "LA", "Baltimore"))
+  mutate(county = ifelse(fips == "06037", "LA County", "Baltimore City"))
 
-#Save the plot to "plo6.png"
-png("plot6.png", width = 480, height = 480)
-par(mfrow = c(1,2), mar = c(5,4,2,1))
-p <- ggplot(NEI.motor.city, aes(year, emissions)) +
+p <- ggplot(NEI.motor.city, aes(year, emissions)) + 
   geom_point(aes(color = county), pch = 19) + 
   geom_line(aes(color = county), lwd = 0.7) + 
-  labs(x = "Year", y = expression("Emissions of PM"[2.5] ~ "(tons)")) + 
-  ggtitle("Total emissions based on motor vehicles in Baltimore City\nand LA County 1999-2008") +
+  labs(x = "Year", y = expression("Emissions of PM"[2.5] ~ " (tons)")) + 
+  ggtitle("Total emissions based on motor vehicles in Baltimore City\nvs. Los Angeles County 1999-2008") +
   theme(plot.title = element_text(face = "bold")) + 
   scale_color_discrete(name = "US County")
-q <- ggplot(NEI.motor.city, aes(year, change)) + 
-  geom_point(aes(color = county), pch = 19) + 
-  geom_line(aes(color = county), lwd = 0.7) + 
-  labs(x = "Year", y = expression("Index")) + 
-  ggtitle("Emissions change ratio for Balitmore and LA County") +
-  theme(plot.title = element_text(face = "bold")) + 
-  scale_color_discrete(name = "US County")
+
+#Save the plot to "plot6.png"
+png("plot6.png", height = 480, width = 700)
+print(p)
 dev.off()
-
-

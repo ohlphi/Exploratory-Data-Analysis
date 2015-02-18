@@ -1,14 +1,17 @@
 library(dplyr)
 library(ggplot2)
 
-#Download and extract the zip file:
+#Download, extract the files and then remove the zipfile:
 if(!file.exists("Source_Classification_Code.rds") & !file.exists("summarySCC_PM25.rds")) {
   if(!file.exists("exdata-data-NEI_data.zip")) {
-    download.file("https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2FNEI_data.zip", 
-                  destfile = "exdata-data-NEI_data.zip") #,method = "curl")
-    unzip("exdata-data-NEI_data.zip")
+    temp <- tempfile()
+    fileUrl <- "https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2FNEI_data.zip"
+    download.file(fileUrl, temp) #method = "curl"
+    unzip(temp)
+    unlink(temp)
   } else {
-    unzip("exdata-data-NEI_data.zip")
+    unzip(temp)
+    unlink(temp)
   }
   
 }
@@ -28,12 +31,14 @@ NEI.coal <- NEI.coal %>%
   group_by(year) %>%
   summarise(emissions = sum(Emissions))
 
-#Save the plot to "plo4.png"
-png("plot4.png", width = 480, height = 480)
-ggplot(NEI.coal, aes(year, emissions/1000)) + 
+p <- ggplot(NEI.coal, aes(year, emissions/1000)) + 
   geom_point(color = "red", pch = 19) + 
   geom_line(color = "red", lwd = 0.7) + 
-  labs(x = "Year", y = expression("Emissions of PM"[2.5] ~ " - coal combustion-related sources (ktons)")) + 
+  labs(x = "Year", y = expression("Emissions of PM"[2.5] ~ " (ktons)")) + 
   ggtitle("Total emissions of coal combustion-related\nsources in the US 1999-2008") +
   theme(plot.title = element_text(face = "bold", vjust = 1, lineheight = 1))
+
+#Save the plot to "plot4.png"
+png("plot4.png", height = 480, width = 700)
+print(p)
 dev.off()
