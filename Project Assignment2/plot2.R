@@ -1,11 +1,12 @@
 library(dplyr)
 
 #Download, extract the files and then remove the zipfile:
+##REMEMBER TO REMOVE "method='curl'" IF YOU'RE ON A WINDOWS!
 if(!file.exists("Source_Classification_Code.rds") & !file.exists("summarySCC_PM25.rds")) {
   if(!file.exists("exdata-data-NEI_data.zip")) {
     temp <- tempfile()
     fileUrl <- "https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2FNEI_data.zip"
-    download.file(fileUrl, temp) #method = "curl"
+    download.file(fileUrl, temp, method = "curl")
     unzip(temp)
     unlink(temp)
   } else {
